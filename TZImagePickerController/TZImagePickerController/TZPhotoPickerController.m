@@ -45,7 +45,6 @@
 @property (strong, nonatomic) CLLocation *location;
 @property (nonatomic, strong) NSOperationQueue *operationQueue;
 @property (nonatomic, assign) BOOL isSavingMedia;
-@property (nonatomic, assign) BOOL isFetchingMedia;
 @end
 
 static CGSize AssetGridThumbnailSize;
@@ -240,6 +239,7 @@ static CGFloat itemMargin = 5;
     } else {
         _bottomToolBar.backgroundColor = [UIColor colorWithRed:rgb green:rgb blue:rgb alpha:1.0];
     }
+    _bottomToolBar.backgroundColor = [UIColor colorWithRed:19/255.0 green:19/255.0 blue:19/255.0 alpha:1.0];
     
     _previewButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [_previewButton addTarget:self action:@selector(previewButtonClick) forControlEvents:UIControlEventTouchUpInside];
@@ -258,7 +258,7 @@ static CGFloat itemMargin = 5;
         _originalPhotoButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _originalPhotoButton.imageEdgeInsets = UIEdgeInsetsMake(0, [TZCommonTools tz_isRightToLeftLayout] ? 10 : -10, 0, 0);
         [_originalPhotoButton addTarget:self action:@selector(originalPhotoButtonClick) forControlEvents:UIControlEventTouchUpInside];
-        _originalPhotoButton.titleLabel.font = [UIFont systemFontOfSize:16];
+        _originalPhotoButton.titleLabel.font = [UIFont systemFontOfSize:14];
         [_originalPhotoButton setTitle:tzImagePickerVc.fullImageBtnTitleStr forState:UIControlStateNormal];
         [_originalPhotoButton setTitle:tzImagePickerVc.fullImageBtnTitleStr forState:UIControlStateSelected];
         [_originalPhotoButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -267,6 +267,10 @@ static CGFloat itemMargin = 5;
         } else {
             [_originalPhotoButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
         }
+        // ++yich
+        [_originalPhotoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_originalPhotoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+
         [_originalPhotoButton setImage:tzImagePickerVc.photoOriginDefImage forState:UIControlStateNormal];
         [_originalPhotoButton setImage:tzImagePickerVc.photoOriginSelImage forState:UIControlStateSelected];
         _originalPhotoButton.imageView.clipsToBounds = YES;
@@ -276,24 +280,29 @@ static CGFloat itemMargin = 5;
         
         _originalPhotoLabel = [[UILabel alloc] init];
         _originalPhotoLabel.textAlignment = NSTextAlignmentLeft;
-        _originalPhotoLabel.font = [UIFont systemFontOfSize:16];
+        _originalPhotoLabel.font = [UIFont systemFontOfSize:14];
+        // ++yich
         if (@available(iOS 13.0, *)) {
-            _originalPhotoLabel.textColor = [UIColor labelColor];
+            _originalPhotoLabel.textColor = [UIColor whiteColor];
         } else {
-            _originalPhotoLabel.textColor = [UIColor blackColor];
+            _originalPhotoLabel.textColor = [UIColor whiteColor];
         }
         if (_isSelectOriginalPhoto) [self getSelectedPhotoBytes];
     }
     
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    _doneButton.titleLabel.font = [UIFont systemFontOfSize:16];
+    _doneButton.titleLabel.font = [UIFont systemFontOfSize:14];
     [_doneButton addTarget:self action:@selector(doneButtonClick) forControlEvents:UIControlEventTouchUpInside];
     [_doneButton setTitle:tzImagePickerVc.doneBtnTitleStr forState:UIControlStateNormal];
     [_doneButton setTitle:tzImagePickerVc.doneBtnTitleStr forState:UIControlStateDisabled];
     [_doneButton setTitleColor:tzImagePickerVc.oKButtonTitleColorNormal forState:UIControlStateNormal];
     [_doneButton setTitleColor:tzImagePickerVc.oKButtonTitleColorDisabled forState:UIControlStateDisabled];
     _doneButton.enabled = tzImagePickerVc.selectedModels.count || tzImagePickerVc.alwaysEnableDoneBtn;
-    
+    _doneButton.layer.cornerRadius = 15;
+    _doneButton.layer.masksToBounds = YES;
+    [_doneButton setBackgroundImage:[self imageFromColor:[UIColor colorWithRed:255/255.0 green:169/255.0 blue:21/255.0 alpha:1.0]] forState:UIControlStateNormal];
+    [_doneButton setBackgroundImage:[self imageFromColor:[UIColor colorWithRed:221/255.0 green:221/255.0 blue:221/255.0 alpha:1.0]] forState:UIControlStateDisabled];
+        
     _numberImageView = [[UIImageView alloc] initWithImage:tzImagePickerVc.photoNumberIconImage];
     _numberImageView.hidden = tzImagePickerVc.selectedModels.count <= 0;
     _numberImageView.clipsToBounds = YES;
@@ -328,8 +337,8 @@ static CGFloat itemMargin = 5;
     [_bottomToolBar addSubview:_divideLine];
     [_bottomToolBar addSubview:_previewButton];
     [_bottomToolBar addSubview:_doneButton];
-    [_bottomToolBar addSubview:_numberImageView];
-    [_bottomToolBar addSubview:_numberLabel];
+//    [_bottomToolBar addSubview:_numberImageView];
+//    [_bottomToolBar addSubview:_numberLabel];
     [_bottomToolBar addSubview:_originalPhotoButton];
     [self.view addSubview:_bottomToolBar];
     [_originalPhotoButton addSubview:_originalPhotoLabel];
@@ -337,6 +346,17 @@ static CGFloat itemMargin = 5;
     if (tzImagePickerVc.photoPickerPageUIConfigBlock) {
         tzImagePickerVc.photoPickerPageUIConfigBlock(_collectionView, _bottomToolBar, _previewButton, _originalPhotoButton, _originalPhotoLabel, _doneButton, _numberImageView, _numberLabel, _divideLine);
     }
+}
+
+- (UIImage *)imageFromColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0, 0, 1, 1);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
 }
 
 #pragma mark - Layout
@@ -391,8 +411,8 @@ static CGFloat itemMargin = 5;
         _originalPhotoButton.frame = CGRectMake(CGRectGetMaxX(_previewButton.frame), 0, fullImageWidth + 56, 50);
         _originalPhotoLabel.frame = CGRectMake(fullImageWidth + 46, 0, 80, 50);
     }
-    [_doneButton sizeToFit];
-    _doneButton.frame = CGRectMake(self.view.tz_width - _doneButton.tz_width - 12, 0, _doneButton.tz_width, 50);
+//    [_doneButton sizeToFit];
+    _doneButton.frame = CGRectMake(self.view.tz_width - 75 - 15, 10, 75, 30);
     _numberImageView.frame = CGRectMake(_doneButton.tz_left - 24 - 5, 13, 24, 24);
     _numberLabel.frame = _numberImageView.frame;
     _divideLine.frame = CGRectMake(0, 0, self.view.tz_width, 1);
@@ -441,7 +461,6 @@ static CGFloat itemMargin = 5;
     
     [tzImagePickerVc showProgressHUD];
     _doneButton.enabled = NO;
-    self.isFetchingMedia = YES;
     NSMutableArray *assets = [NSMutableArray array];
     NSMutableArray *photos;
     NSMutableArray *infoArr;
@@ -473,12 +492,8 @@ static CGFloat itemMargin = 5;
                 
                 for (id item in photos) { if ([item isKindOfClass:[NSNumber class]]) return; }
                 
-                if (havenotShowAlert && alertView) {
-                    [alertView dismissViewControllerAnimated:YES completion:^{
-                        alertView = nil;
-                        [self didGetAllPhotos:photos assets:assets infoArr:infoArr];
-                    }];
-                } else {
+                if (havenotShowAlert) {
+                    [tzImagePickerVc hideAlertView:alertView];
                     [self didGetAllPhotos:photos assets:assets infoArr:infoArr];
                 }
             } progressHandler:^(double progress, NSError * _Nonnull error, BOOL * _Nonnull stop, NSDictionary * _Nonnull info) {
@@ -504,7 +519,6 @@ static CGFloat itemMargin = 5;
     TZImagePickerController *tzImagePickerVc = (TZImagePickerController *)self.navigationController;
     [tzImagePickerVc hideProgressHUD];
     _doneButton.enabled = YES;
-    self.isFetchingMedia = NO;
 
     if (tzImagePickerVc.autoDismiss) {
         [self.navigationController dismissViewControllerAnimated:YES completion:^{
@@ -782,6 +796,7 @@ static CGFloat itemMargin = 5;
     _numberImageView.hidden = tzImagePickerVc.selectedModels.count <= 0;
     _numberLabel.hidden = tzImagePickerVc.selectedModels.count <= 0;
     _numberLabel.text = [NSString stringWithFormat:@"%zd",tzImagePickerVc.selectedModels.count];
+    [_doneButton setTitle:[NSString stringWithFormat:@"%@(%zd)",tzImagePickerVc.doneBtnTitleStr,tzImagePickerVc.selectedModels.count] forState:UIControlStateNormal];
     
     _originalPhotoButton.enabled = tzImagePickerVc.selectedModels.count > 0;
     _originalPhotoButton.selected = (_isSelectOriginalPhoto && _originalPhotoButton.enabled);
@@ -966,7 +981,7 @@ static CGFloat itemMargin = 5;
 #pragma mark - PHPhotoLibraryChangeObserver
 
 - (void)photoLibraryDidChange:(PHChange *)changeInstance {
-    if (self.isSavingMedia || self.isFetchingMedia) {
+    if (self.isSavingMedia) {
         return;
     }
     dispatch_async(dispatch_get_main_queue(), ^{
