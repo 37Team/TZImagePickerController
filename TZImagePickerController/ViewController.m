@@ -631,6 +631,13 @@
 }
 
 // Decide asset show or not't
+- (BOOL)isAssetCanChoice:(PHAsset *)asset{
+    PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:asset].firstObject;
+    int fileSize = [[resource valueForKey:@"fileSize"] intValue];
+    NSLog(@"文件大小%i",fileSize);
+    
+    return  YES;
+}
 // 决定asset显示与否
 - (BOOL)isAssetCanSelect:(PHAsset *)asset {
     /*

@@ -289,6 +289,8 @@
 // Decide asset show or not't
 // 决定照片显示与否
 - (BOOL)isAssetCanSelect:(PHAsset *)asset;
+// 决定是否可以选择照片
+- (BOOL)isAssetCanChoice:(PHAsset *)asset;
 @end
 
 

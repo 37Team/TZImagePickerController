@@ -640,7 +640,16 @@ static CGFloat itemMargin = 5;
             }
         } else {
             // 2. select:check if over the maxImagesCount / 选择照片,检查是否超过了最大个数的限制
+
             if (tzImagePickerVc.selectedModels.count < tzImagePickerVc.maxImagesCount) {
+                BOOL canSelect = YES;
+                if ([tzImagePickerVc.pickerDelegate respondsToSelector:@selector(isAssetCanChoice:)]) {
+                    canSelect = [tzImagePickerVc.pickerDelegate isAssetCanChoice:model.asset];
+                }
+                if (!canSelect) {
+                    return;
+                }
+                
                 if (!tzImagePickerVc.allowPreview) {
                     BOOL shouldDone = tzImagePickerVc.maxImagesCount == 1;
                     if (!tzImagePickerVc.allowPickingMultipleVideo && (model.type == TZAssetModelMediaTypeVideo || model.type == TZAssetModelMediaTypePhotoGif)) {
